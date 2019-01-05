@@ -18,8 +18,6 @@ client.on("ready", () => {
 
 client.on("message", (message) => {
     if(message.content.startsWith( "!macro")){
-        console.log(message.author.id)
-        if(message.author.id !== 'Toyola#2750') return;
         message.channel.send("```\n" + result + "```");
     }
 });
