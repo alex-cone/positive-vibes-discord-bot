@@ -1,22 +1,22 @@
 {
-  "name": "warcraft-logs-discord-bot",
+  "name": "positive-vibes-discord-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alex-cone/warcraft-logs-discord-bot.git"
+    "url": "git+https://github.com/alex-cone/-discord-bot.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/alex-cone/warcraft-logs-discord-bot/issues"
+    "url": "https://github.com/alex-cone/positive-vibes-discord-bot/issues"
   },
-  "homepage": "https://github.com/alex-cone/warcraft-logs-discord-bot#readme",
+  "homepage": "https://github.com/alex-cone/positive-vibes-discord-bot#readme",
   "dependencies": {
     "discord.js": "^11.4.2",
     "googleapis": "^27.0.0"

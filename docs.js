@@ -1,9 +1,6 @@
-const Discord = require("discord.js")
-const fs = require('fs')
-const secrets = require("./secrets.js")
-const client = new Discord.Client();
-const readline = require('readline');
 const { google } = require('googleapis');
+const readline = require('readline');
+const fs = require('fs')
 // If modifying these scopes, delete token.json.
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 // The file token.json stores the user's access and refresh tokens, and is
@@ -12,35 +9,13 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 const TOKEN_PATH = 'token.json';
 var oAuth2Client;
 
-client.on("ready", () => {
-    console.log("I am ready!");
-});
-
-client.on("message", (message) => {
-    if (message.content.startsWith("!macro")) {
-        if (message.member.roles.has(message.guild.roles.find(role => role.name === "Veterans").id) || message.member.roles.has(message.guild.roles.find(role => role.name === "Officer").id)) {
-            listMacros(oAuth2Client, sendMacros);
-            function sendMacros(){
-                console.log("sending message...")
-                message.channel.send("```\n" + macro + "```");
-            }
-        } else {
-            message.channel.send("Sorry you don't have permissions to do that.")
-        }
-        //callbackCount = 0;
-    }
-});
-
-client.login(secrets["botToken"])
-
-
-// Load client secrets from a local file.
-fs.readFile('credentials.json', (err, content) => {
-    if (err) return console.log('Error loading client secret file:', err);
-    // Authorize a client with credentials, then call the Google Sheets API.
-    creds = JSON.parse(content)
-    authorize(JSON.parse(content), listMacros);
-});
+// // Load client secrets from a local file.
+// fs.readFile('credentials.json', (err, content) => {
+//     if (err) return console.log('Error loading client secret file:', err);
+//     // Authorize a client with credentials, then call the Google Sheets API.
+//     creds = JSON.parse(content)
+//     authorize(JSON.parse(content), listMacros);
+// });
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -48,17 +23,19 @@ fs.readFile('credentials.json', (err, content) => {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
-    const { client_secret, client_id, redirect_uris } = credentials.installed;
-    oAuth2Client = new google.auth.OAuth2(
-        client_id, client_secret, redirect_uris[0]);
-
-    // Check if we have previously stored a token.
-    fs.readFile(TOKEN_PATH, (err, token) => {
-        if (err) return getNewToken(oAuth2Client, callback);
-        oAuth2Client.setCredentials(JSON.parse(token));
-        callback(oAuth2Client);
-    });
+function authorize(client_secret, client_id, redirect_uris, callback) {
+    if (client_id && client_secret && redirect_uris) {
+        oAuth2Client = new google.auth.OAuth2(
+            client_id, client_secret, redirect_uris[0]);
+        // Check if we have previously stored a token.
+        fs.readFile(TOKEN_PATH, (err, token) => {
+            if (err) return getNewToken(oAuth2Client, callback);
+            oAuth2Client.setCredentials(JSON.parse(token));
+            callback(oAuth2Client, function blah() {});
+        });
+    } else {
+        console.log("Could not get Google Sheets secrets")
+    }
 }
 
 /**
@@ -174,7 +151,11 @@ function listMacros(auth, callback) {
             }
             macro = macro + "/w " + mainNameLeft + " **PLACE ORB**\n\n";
         }
-        if (callback){callback()}
+        if (callback) { callback() }
     });
-    
+
 }
+
+module.exports.authorize = authorize;
+module.exports.listMacros = listMacros;
+
