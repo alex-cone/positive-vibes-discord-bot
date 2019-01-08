@@ -2,6 +2,7 @@ const Discord = require("discord.js")
 const client = new Discord.Client();
 const creds = require('./credentials.js')
 const docs = require('./docs.js')
+const prefix = "!"
 
 client.on("ready", () => {
     console.log("Hello?")
@@ -10,7 +11,7 @@ client.on("ready", () => {
 });
 
 client.on("message", (message) => {
-    if (message.content.startsWith("!macro")) {
+    if (message.content === `${prefix}macro`) {
         if (message.member.roles.has(message.guild.roles.find(role => role.name === "Veterans").id) || message.member.roles.has(message.guild.roles.find(role => role.name === "Officer").id)) {
             docs.listMacros(null,sendMacros);
             function sendMacros(){
