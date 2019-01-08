@@ -7,7 +7,7 @@ const SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly'];
 // created automatically when the authorization flow completes for the first
 // time.
 const TOKEN_PATH = 'token.json';
-var oAuth2Client;
+let oAuth2Client;
 
 // // Load client secrets from a local file.
 // fs.readFile('credentials.json', (err, content) => {
@@ -79,13 +79,13 @@ function listMacros(auth, callback) {
     }, (err, res) => {
         if (err) return console.log('The API returned an error: ' + err);
         const rows = res.data.values;
-        var jsonResult = {}
-        var count = 1;
+        let jsonResult = {}
+        let count = 1;
         if (rows.length) {
             rows.map((row) => {
-                var firstPerson = `${row[1]}`
-                var secondPerson = `${row[2]}`
-                var group = {
+                let firstPerson = `${row[1]}`
+                let secondPerson = `${row[2]}`
+                let group = {
                     'one': firstPerson,
                     'two': secondPerson
                 }
@@ -100,33 +100,33 @@ function listMacros(auth, callback) {
             console.log('No data found.');
         }
         macro = ""
-        for (var i = 1; i <= 5; i++) {
-            //set up and slice string variables
-            var mainNameLeft = jsonResult["Left " + i]['two'];
-            var mainNameRight = jsonResult["Right " + i]['two'];
+        for (let i = 1; i <= 5; i++) {
+            //set up and slice string letiables
+            let mainNameLeft = jsonResult["Left " + i]['two'];
+            let mainNameRight = jsonResult["Right " + i]['two'];
             if (mainNameLeft.indexOf("(") > -1) {
                 mainNameLeft = mainNameLeft.slice(0, mainNameLeft.indexOf(" "));
             }
             if (mainNameRight.indexOf("(") > -1) {
                 mainNameRight = mainNameRight.slice(0, mainNameRight.indexOf(" "));
             }
-            var next = i + 1;
+            let next = i + 1;
             if (next == 6) {
                 next = 1;
             }
-            var turnNameLeft1 = jsonResult["Left " + next]['one'];
+            let turnNameLeft1 = jsonResult["Left " + next]['one'];
             if (turnNameLeft1.indexOf("(") > -1) {
                 turnNameLeft1 = turnNameLeft1.slice(0, turnNameLeft1.indexOf(" "));
             }
-            var turnNameLeft2 = jsonResult["Left " + next]['two'];
+            let turnNameLeft2 = jsonResult["Left " + next]['two'];
             if (turnNameLeft2.indexOf("(") > -1) {
                 turnNameLeft2 = turnNameLeft2.slice(0, turnNameLeft2.indexOf(" "));
             }
-            var turnNameRight1 = jsonResult["Right " + next]['one'];
+            let turnNameRight1 = jsonResult["Right " + next]['one'];
             if (turnNameRight1.indexOf("(") > -1) {
                 turnNameRight1 = turnNameRight1.slice(0, turnNameRight1.indexOf(" "));
             }
-            var turnNameRight2 = jsonResult["Right " + next]['two'];
+            let turnNameRight2 = jsonResult["Right " + next]['two'];
             if (turnNameRight2.indexOf("(") > -1) {
                 turnNameRight2 = turnNameRight2.slice(0, turnNameRight2.indexOf(" "));
             }
