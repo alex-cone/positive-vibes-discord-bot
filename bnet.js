@@ -10,7 +10,7 @@ blizzard.getApplicationToken(['profile'], { origin: 'us', key: '7612ac0d34154242
     blizzard.defaults.token = response.data.access_token;
     return blizzard.wow.guild(['members'], { realm: 'Kil\'jaeden', name: 'Chicken Dinner'})
     .then(response => {
-      console.log(response.data.members);
+      //console.log(response.data.members);
     });
 })
 

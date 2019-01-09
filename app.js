@@ -37,9 +37,10 @@ client.on("ready", () => {
 });
 
 client.on("message", (message) => {
-    if (message.author.id === message.guild.members.find(member => member.nickname === 'Moonfire bot (Harry btw')){
-        message.react(message.guild.emojis.find(emoji => emoji.name == 'HYPERS').id);
-    }
+    // Troll Harry statement
+    // if (message.author.id === message.guild.members.find(member => member.nickname === 'Moonfire bot (Harry btw)').id){
+    //     message.react(message.guild.emojis.find(emoji => emoji.name == 'HYPERS').id);
+    // }
     if (!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).split(/ +/);
     const command = args.shift().toLowerCase();
