@@ -4,13 +4,12 @@ const creds = require('./credentials.js');
 const docs = require('./docs.js');
 const fs = require('fs');
 const schedule = require('node-schedule')
+const bnet = require('./bnet.js')
 const prefix = "!";
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const raidCron = '30 19-22 * * 5,6' //raid times, checks every 30 minutes (I think)
 const testCron = '* * * * *' //every minute
 client.commands = new Discord.Collection();
-
-let ready = false;
 
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -24,12 +23,12 @@ client.on("ready", () => {
     console.log("Hello :)")
     //authorization for google sheets access
     docs.authorize(creds["installed"].client_secret, creds["installed"].client_id, creds["installed"].redirect_uris, docs.listMacros)
-    schedule.scheduleJob(testCron, function(){
+    schedule.scheduleJob(testCron, function () {
         console.log("Current Attendance: ")
         let chickenDinner = client.guilds.get('227260885746450433');
-        if(chickenDinner && chickenDinner.available){
+        if (chickenDinner && chickenDinner.available) {
             let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
-            if(voiceMembers.length > 0){
+            if (voiceMembers.length > 0) {
                 console.log(voiceMembers[0].nickname)
             }
         }
@@ -41,7 +40,7 @@ client.on("message", (message) => {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).split(/ +/);
     const command = args.shift().toLowerCase();
-    if(!client.commands.has(command)) return;
+    if (!client.commands.has(command)) return;
     try {
         client.commands.get(command).execute(message, args);
     }
