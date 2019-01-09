@@ -29,7 +29,7 @@ client.on("ready", () => {
         if (chickenDinner && chickenDinner.available) {
             let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
             if (voiceMembers.length > 0) {
-                console.log(voiceMembers[0].nickname)
+                voiceMembers.map(member => console.log(member.nickname))
             }
         }
     });
@@ -37,6 +37,9 @@ client.on("ready", () => {
 });
 
 client.on("message", (message) => {
+    if (message.author.id === message.guild.members.find(member => member.nickname === 'Moonfire bot (Harry btw')){
+        message.react(message.guild.emojis.find(emoji => emoji.name == 'HYPERS').id);
+    }
     if (!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).split(/ +/);
     const command = args.shift().toLowerCase();

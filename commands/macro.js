@@ -8,6 +8,7 @@ module.exports = {
             docs.listMacros(null, sendMacros);
             function sendMacros() {
                 console.log("sending message...");
+                message.react(message.guild.emojis.find(emoji => emoji.name == 'HYPERS').id);
                 message.channel.send("```\n" + macro + "```");
             }
         } else {
