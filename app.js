@@ -42,7 +42,7 @@ client.on("message", (message) => {
     //     message.react(message.guild.emojis.find(emoji => emoji.name == 'HYPERS').id);
     // }
     if (!message.content.startsWith(prefix) || message.author.bot) return;
-    const args = message.content.slice(prefix.length).split(/ +/);
+    const args = message.content.slice(prefix.length).match(/(?:[^\s"]+|"[^"]*")+/g).map(arg =>  arg = arg.replace(new RegExp("\"", "g"), ""));
     const command = args.shift().toLowerCase();
     if (!client.commands.has(command)) return;
     try {
