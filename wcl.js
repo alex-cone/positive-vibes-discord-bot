@@ -2,14 +2,7 @@ const wcl = require('weasel.js');
 const creds = require('./credentials.js');
 
 wcl.setApiKey(creds.wclSecret);
-
-// wcl.getReportsGuild('Chicken Dinner', 'Kiljaeden', 'us', params, function(err, data) {
-//     if (err) {
-//         console.log(err);
-//         return;
-//     }
-//     console.log(data)
-// });
+getGuildAttendance();
 function getAParse(args, params, callback) {
     if (!args.regionName) {
         args.regionName = 'us'
@@ -80,11 +73,11 @@ function getAllBestParses(args, params, callback) {
                 let encounters = new Map();
                 data.forEach(enc => {
                     if (!encounters.get(enc.encounterName)) {
-                        encounters.set(enc.encounterName, {percentile: enc.percentile, rank: enc.rank, difficulty: enc.difficulty, reportID: enc.reportID});
+                        encounters.set(enc.encounterName, { percentile: enc.percentile, rank: enc.rank, difficulty: enc.difficulty, reportID: enc.reportID });
                     }
                 });
                 console.log(encounters)
-                encounters.forEach(function(enc,key) {
+                encounters.forEach(function (enc, key) {
                     console.log(enc)
                     if (enc.difficulty === 3) {
                         result = result + "Normal " + key + "\n";
@@ -97,11 +90,27 @@ function getAllBestParses(args, params, callback) {
                     result = result + "Rank: " + enc.rank + "\n\n";
                 });
                 if (params.partition) {
-                    callback("No current patch data found... Using older patch data: \n\n" + result);
+                    callback("No current patch data found... Using older patch data for damage parse: \n\n" + result);
                 } else {
-                    callback(result);
+                    callback("Damage Parses: \n\n" + result);
                 }
             }
+        });
+    });
+}
+
+function getGuildAttendance() {
+    wcl.getReportsGuild('Chicken Dinner', 'Kiljaeden', 'us', {}, function (err, data) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+        wcl.getReportFights(data[0].id, {}, function (err, data) {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            data.friendlies.map(rep => console.log(rep.name));
         });
     });
 }
