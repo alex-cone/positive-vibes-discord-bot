@@ -2,7 +2,6 @@ const wcl = require('weasel.js');
 const creds = require('./credentials.js');
 
 wcl.setApiKey(creds.wclSecret);
-getGuildAttendance();
 function getAParse(args, params, callback) {
     if (!args.regionName) {
         args.regionName = 'us'
@@ -98,13 +97,14 @@ function getAllBestParses(args, params, callback) {
         });
     });
 }
-
 function getGuildAttendance() {
     wcl.getReportsGuild('Chicken Dinner', 'Kiljaeden', 'us', {}, function (err, data) {
         if (err) {
             console.log(err);
             return;
         }
+        // const date = new Date(data[0].start);
+        // console.log(date.toDateString());
         wcl.getReportFights(data[0].id, {}, function (err, data) {
             if (err) {
                 console.log(err);
