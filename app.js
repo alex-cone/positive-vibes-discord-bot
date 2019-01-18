@@ -11,6 +11,7 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 const raidCron = '*/2 19-22 * * 5,6' //raid times, checks every 2 minutes (I think)
 const testCron = '* * * * *' //every minute
 let attendanceMap = {};
+let cancel = false;
 let = '';
 client.commands = new Discord.Collection();
 
@@ -80,23 +81,25 @@ const discordAttendance = () => {
                 }
                 attendanceMap[Number(member.id)][key] = attendanceMap[Number(member.id)][key] + 1;
             });
-            //temp after job
-            attendanceArray = Object.entries(attendanceMap);
-            for (let i = 0; i < attendanceArray.length; i++) {
-                if (attendanceArray[i][1][key] >= 90) {
-                    attendanceMap[attendanceArray[i][0]][key] = 1;
-                } else if (attendanceArray[i][1][key] < 90 && attendanceArray[i][1][key] > 30) {
-                    attendanceMap[attendanceArray[i][0]][key] = .5;
-                } else {
-                    attendanceMap[attendanceArray[i][0]][key] = 0;
-                }
-            }
         }
     }
 }
 
 const postData = () => {
-    bq.generateCurrentAttendanceJSON(attendanceMap);
+    attendanceArray = Object.entries(attendanceMap);
+    if (attendanceArray.length >= 20 && cancel === false) {
+        for (let i = 0; i < attendanceArray.length; i++) {
+            if (attendanceArray[i][1][key] >= 90) {
+                attendanceMap[attendanceArray[i][0]][key] = 1;
+            } else if (attendanceArray[i][1][key] < 90 && attendanceArray[i][1][key] > 30) {
+                attendanceMap[attendanceArray[i][0]][key] = .5;
+            } else {
+                attendanceMap[attendanceArray[i][0]][key] = 0;
+            }
+        }
+        bq.generateCurrentAttendanceJSON(attendanceMap);
+    }
+    cancel = false;
     attendanceMap = {}
     key = '';
 }
@@ -115,3 +118,9 @@ const months = {
     10: 'Nov',
     11: 'Dec'
 }
+
+const cancelAttendance = () => {
+    cancel = true;
+}
+
+module.exports.cancelAttendance = cancelAttendance;
