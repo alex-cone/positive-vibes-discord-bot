@@ -1,14 +1,17 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const creds = require('./credentials.js');
+const bq = require('./bq.js');
 const docs = require('./docs.js');
 const fs = require('fs');
-const schedule = require('node-schedule')
+const cron = require('cron');
 const bnet = require('./bnet.js')
 const prefix = "!";
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const raidCron = '30 19-22 * * 5,6' //raid times, checks every 30 minutes (I think)
+const raidCron = '*/2 19-22 * * 5,6' //raid times, checks every 2 minutes (I think)
 const testCron = '* * * * *' //every minute
+let attendanceMap = {};
+let = '';
 client.commands = new Discord.Collection();
 
 for (const file of commandFiles) {
@@ -21,18 +24,16 @@ for (const file of commandFiles) {
 
 client.on("ready", () => {
     console.log("Hello :)")
+    process.env.TZ = 'America/LosAngeles'
     //authorization for google sheets access
     docs.authorize(creds["installed"].client_secret, creds["installed"].client_id, creds["installed"].redirect_uris, docs.listMacros)
-    schedule.scheduleJob(testCron, function () {
-        console.log("Current Attendance: ")
-        let chickenDinner = client.guilds.get('227260885746450433');
-        if (chickenDinner && chickenDinner.available) {
-            let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
-            if (voiceMembers.length > 0) {
-                voiceMembers.map(member => console.log(member.nickname))
-            }
-        }
-    });
+    const job = new cron.CronJob({
+        cronTime: raidCron,
+        onTick: discordAttendance,
+        start: true,
+        timeZone: 'America/Los_Angeles',
+        onComplete: postData,
+    })
     console.log("I am ready!");
 });
 
@@ -55,3 +56,62 @@ client.on("message", (message) => {
 });
 
 client.login(creds["botToken"])
+
+const discordAttendance = () => {
+    console.log("Current Attendance: ");
+    let chickenDinner = client.guilds.get('227260885746450433');
+    if (chickenDinner && chickenDinner.available) {
+        let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
+        if (voiceMembers.length > 0) {
+            const today = new Date();
+            key = months[today.getMonth()] + today.getDate();
+            voiceMembers.map(member => {
+                if (member.nickname.length > 1) {
+                    attendanceMap[Number(member.id)] = {
+                        name: member.nickname,
+                    }
+                } else {
+                    attendanceMap[Number(member.id)] = {
+                        name: member.username,
+                    }
+                }
+                if (isNaN(attendanceMap[Number(member.id)][key])) {
+                    attendanceMap[Number(member.id)][key] = 0;
+                }
+                attendanceMap[Number(member.id)][key] = attendanceMap[Number(member.id)][key] + 1;
+            });
+            //temp after job
+            attendanceArray = Object.entries(attendanceMap);
+            for (let i = 0; i < attendanceArray.length; i++) {
+                if (attendanceArray[i][1][key] >= 90) {
+                    attendanceMap[attendanceArray[i][0]][key] = 1;
+                } else if (attendanceArray[i][1][key] < 90 && attendanceArray[i][1][key] > 30) {
+                    attendanceMap[attendanceArray[i][0]][key] = .5;
+                } else {
+                    attendanceMap[attendanceArray[i][0]][key] = 0;
+                }
+            }
+        }
+    }
+}
+
+const postData = () => {
+    bq.generateCurrentAttendanceJSON(attendanceMap);
+    attendanceMap = {}
+    key = '';
+}
+
+const months = {
+    0: 'Jan',
+    1: 'Feb',
+    2: 'Mar',
+    3: 'Apr',
+    4: 'May',
+    5: 'Jun',
+    6: 'Jul',
+    7: 'Aug',
+    8: 'Sep',
+    9: 'Oct',
+    10: 'Nov',
+    11: 'Dec'
+}

@@ -35,6 +35,7 @@ const sampleJSON = {
     }
   ]
 }
+// TODO: CLEAN UP EVERYTHING
 // Creates a client
 const bigquery = new BigQuery({
   projectId: projectId,
@@ -57,80 +58,74 @@ const metadata = {
 const newData = {
   124: {
     name: 'Toyola',
-    Jan17: '1'
+    Jan20: '1'
   },
   126: {
     name: 'Jupix',
-    Jan17: '1'
+    Jan20: '1'
   },
   130: {
     name: 'Dwang',
-    Jan17: '0'
+    Jan20: '1'
+  },
+  140: {
+    name: 'Shinypants',
+    Jan20: '1'
+  },
+  160: {
+    name: 'Swang',
+    Jan20: '1'
+  },
+  170: {
+    name: 'Kaledin',
+    Jan20: '1'
+  },
+  172: {
+    name: 'Bob',
+    Jan20: '1'
   }
 };
 
-generateCurrentAttendanceJSON(newData);
 function generateCurrentAttendanceJSON(newData) {
   bigquery
     .dataset(datasetId)
     .table(tableId)
     .getRows().then(rows => {
-      if (!rows[0][1]) {
-        console.log("No table exists, using default data...")
-        rows = [
-          [
-            {
-              name: "Toyola",
-              id: "124",
-              totalPercent: ".66",
-              Jan13: "1",
-              Jan14: "1",
-              Jan15: "1",
-              Jan16: "0",
-            },
-            {
-              name: "Jupix",
-              id: "126",
-              totalPercent: ".33",
-              Jan13: "1",
-              Jan14: "0",
-              Jan15: "1",
-              Jan16: "0",
-            },
-            {
-              name: "Dwang",
-              id: "130",
-              totalPercent: ".66",
-              Jan13: "1",
-              Jan14: "0",
-              Jan15: "1",
-              Jan16: "1",
-            }
-          ]
-        ]
-      }
       if (!newData) {
         console.error("There is no new data to be posted.");
         return;
       }
-      rows[0].forEach(row => {
-        if (Object.keys(newData).includes(row.id.toString())) {
-          console.log(newData[row.id.toString()])
-          let newValues = newData[row.id.toString()] //this is where I left off, trying to add newData to the current retrieved data in BQ
-          let newEntries = newValues.next();
-          while (!newEntries.done) {
-            for (let value in newEntries.value) {
-              if (value != 'name') {
-                row[value] = newData['' + row.id][value];
+      // if there is no current data, change the newData to the proper format for BigQuery load, otherwise add the newData to the existing data
+      if (!rows) {
+        rows = newData;
+      } else {
+        idList = [];
+        rows[0].forEach(row => {
+          idList.push(row.id.toString());
+          if (Object.keys(newData).includes(row.id.toString())) {
+            let newValues = Object.entries(newData[row.id.toString()])
+            for (let i = 0; i < newValues.length; i++) {
+              if (newValues[i][0] != 'name') {
+                row[newValues[i][0]] = Number(newValues[i][1]);
               }
             }
-            newEntries = newValues.next();
+          } 
+        })
+        // add new users who do not already exist in the data
+        let arrData = Object.entries(newData)
+        for(let i = 0; i < arrData.length; i++) {
+          if (!idList.includes(arrData[i][0])) {
+            const day = Object.keys(arrData[i][1])[1];
+            let newEntry = {
+              name: arrData[i][1].name,
+              id: arrData[i][0],
+              totalPercent: 0,
+            }
+            newEntry[day] = Number(arrData[i][1][day]);
+            rows[0].push(newEntry)
           }
         }
-      })
-
-
-
+      }
       let attendanceJSON = rows[0].values();
       let count = 0;
       let playerCount = 0;
@@ -152,6 +147,10 @@ function generateCurrentAttendanceJSON(newData) {
         let total = 0;
         for (let value in rows[0][i]) {
           if (value != 'name' && value != 'totalPercent' && value != 'id') {
+            if(isNaN(rows[0][i][value]) || !rows[0][i][value]) {
+              rows[0][i][value] = 0;
+            }
+            rows[0][i][value] = Number(rows[0][i][value])
             total = total + rows[0][i][value];
           }
         }
@@ -191,3 +190,4 @@ function processAttendance(rows) {
   }).catch(err => console.error(err));
 }
 
+module.exports.generateCurrentAttendanceJSON = generateCurrentAttendanceJSON;
