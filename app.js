@@ -67,7 +67,7 @@ const discordAttendance = () => {
             const today = new Date();
             key = months[today.getMonth()] + today.getDate();
             voiceMembers.map(member => {
-                if (member.nickname.length > 1) {
+                if (member.nickname) {
                     attendanceMap[Number(member.id)] = {
                         name: member.nickname,
                     }
@@ -88,6 +88,7 @@ const discordAttendance = () => {
 const postData = () => {
     attendanceArray = Object.entries(attendanceMap);
     if (attendanceArray.length >= 20 && cancel === false) {
+	console.log("Posting attendance");
         for (let i = 0; i < attendanceArray.length; i++) {
             if (attendanceArray[i][1][key] >= 90) {
                 attendanceMap[attendanceArray[i][0]][key] = 1;
