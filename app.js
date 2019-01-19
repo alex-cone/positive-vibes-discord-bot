@@ -8,12 +8,12 @@ const cron = require('cron');
 const bnet = require('./bnet.js')
 const prefix = "!";
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const fridayRaidCron = '*/2 19-22 * * 5' //raid times, checks every 2 minutes (I think)
-const satRaidCron = '*/2 19-22 * * 6'
+const raidCron = '*/2 19-22 * * 5,6' //raid times, checks every 2 minutes (I think)
 const testCron = '* * * * *' //every minute
 let attendanceMap = {};
 let cancel = false;
-let = '';
+let key = '';
+let cronCount = 0; //used to track how many times the cron has run to stop it after completion
 client.commands = new Discord.Collection();
 
 for (const file of commandFiles) {
@@ -29,15 +29,8 @@ client.on("ready", () => {
     process.env.TZ = 'America/LosAngeles'
     //authorization for google sheets access
     docs.authorize(creds["installed"].client_secret, creds["installed"].client_id, creds["installed"].redirect_uris, docs.listMacros)
-    const job = new cron.CronJob({
-        cronTime: fridayRaidCron,
-        onTick: discordAttendance,
-        start: true,
-        timeZone: 'America/Los_Angeles',
-        onComplete: postData,
-    })
-    const job2 = new cron.CronJob({
-        cronTime: satRaidCron,
+    this.job = new cron.CronJob({
+        cronTime: raidCron,
         onTick: discordAttendance,
         start: true,
         timeZone: 'America/Los_Angeles',
@@ -67,7 +60,12 @@ client.on("message", (message) => {
 client.login(creds["botToken"])
 
 const discordAttendance = () => {
-    console.log("Current Attendance: ");
+    cronCount++;
+    if (cronCount >= 119) {
+        cronCount = 0;
+        this.job.stop();
+    }
+    console.log("Current Attendance Cron Run Through #" + cronCount);
     let chickenDinner = client.guilds.get('227260885746450433');
     if (chickenDinner && chickenDinner.available) {
         let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
@@ -94,6 +92,7 @@ const discordAttendance = () => {
 }
 
 const postData = () => {
+    console.log("Cron is finished.");
     attendanceArray = Object.entries(attendanceMap);
     if (attendanceArray.length >= 20 && cancel === false) {
 	console.log("Posting attendance");
@@ -108,6 +107,7 @@ const postData = () => {
         }
         bq.generateCurrentAttendanceJSON(attendanceMap);
     }
+    this.job.start();
     cancel = false;
     attendanceMap = {}
     key = '';
