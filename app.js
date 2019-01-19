@@ -8,7 +8,8 @@ const cron = require('cron');
 const bnet = require('./bnet.js')
 const prefix = "!";
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const raidCron = '*/2 19-22 * * 5,6' //raid times, checks every 2 minutes (I think)
+const fridayRaidCron = '*/2 19-22 * * 5' //raid times, checks every 2 minutes (I think)
+const satRaidCron = '*/2 19-22 * * 6'
 const testCron = '* * * * *' //every minute
 let attendanceMap = {};
 let cancel = false;
@@ -29,7 +30,14 @@ client.on("ready", () => {
     //authorization for google sheets access
     docs.authorize(creds["installed"].client_secret, creds["installed"].client_id, creds["installed"].redirect_uris, docs.listMacros)
     const job = new cron.CronJob({
-        cronTime: raidCron,
+        cronTime: fridayRaidCron,
+        onTick: discordAttendance,
+        start: true,
+        timeZone: 'America/Los_Angeles',
+        onComplete: postData,
+    })
+    const job2 = new cron.CronJob({
+        cronTime: satRaidCron,
         onTick: discordAttendance,
         start: true,
         timeZone: 'America/Los_Angeles',
