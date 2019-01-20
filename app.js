@@ -1,4 +1,5 @@
 process.env.TZ = 'America/LosAngeles'
+const time = require('time');
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const creds = require('./credentials.js');
@@ -35,6 +36,7 @@ client.on("ready", () => {
         start: true,
         timeZone: 'America/Los_Angeles',
         onComplete: postData,
+        runOnInit: true
     })
     console.log("I am ready!");
 });
@@ -67,8 +69,10 @@ const discordAttendance = () => {
         if (chickenDinner && chickenDinner.available) {
             let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
             if (voiceMembers.length > 0) {
-                const today = new Date();
-                console.log(today.toString());
+                const today = new time.Date();
+                today.setTimezone('America/Los_Angeles');
+                console.log(today.getTimezone());
+                console.log(today.getHours());
                 key = months[today.getMonth()] + today.getDate();
                 voiceMembers.map(member => {
                     if (member.nickname.length) {
