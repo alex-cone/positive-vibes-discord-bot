@@ -1,5 +1,4 @@
 process.env.TZ = 'America/LosAngeles'
-const time = require('time');
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const creds = require('./credentials.js');
@@ -31,12 +30,11 @@ client.on("ready", () => {
     //authorization for google sheets access
     docs.authorize(creds["installed"].client_secret, creds["installed"].client_id, creds["installed"].redirect_uris, docs.listMacros)
     this.job = new cron.CronJob({
-        cronTime: testCron,
+        cronTime: raidCron,
         onTick: discordAttendance,
         start: true,
         timeZone: 'America/Los_Angeles',
         onComplete: postData,
-        runOnInit: true
     })
     console.log("I am ready!");
 });
@@ -58,48 +56,53 @@ client.on("message", (message) => {
 client.login(creds["botToken"])
 
 const discordAttendance = () => {
-    cronCount++;
-    if (cronCount >= 120) {
-        cronCount = 0;
-        this.job.stop();
-    }
-    else {
-        console.log("Current Attendance Cron Run Through #" + cronCount);
-        let chickenDinner = client.guilds.get('227260885746450433');
-        if (chickenDinner && chickenDinner.available) {
-            let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
-            if (voiceMembers.length > 0) {
-                const today = new time.Date();
-                today.setTimezone('America/Los_Angeles');
-                console.log(today.getTimezone());
-                console.log(today.getHours());
-                key = months[today.getMonth()] + today.getDate();
-                voiceMembers.map(member => {
-                    if (member.nickname.length) {
+    console.log("Current Attendance Cron Run Through #" + cronCount+1);
+    let chickenDinner = client.guilds.get('227260885746450433');
+    if (chickenDinner && chickenDinner.available) {
+        let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
+        if (voiceMembers.length > 0) {
+            const today = new Date().toLocaleDateString('en-US', {
+                timeZone: 'America/Los_Angeles'
+            })
+            const month = today.split('/')[0]
+            const day = today.split('/')[1]
+            key = months[month-1] + day;
+            voiceMembers.map(member => {
+                if (!attendanceMap[Number(member.id)]) {
+                    if (member.nickname) {
+                        console.log("Using nickname");
                         attendanceMap[Number(member.id)] = {
                             name: member.nickname,
                         }
                     } else {
                         console.log("Using username");
                         attendanceMap[Number(member.id)] = {
-                            name: member.username,
+                            name: member.user.username,
                         }
                     }
-                    if (isNaN(attendanceMap[Number(member.id)][key])) {
-                        attendanceMap[Number(member.id)][key] = 0;
-                    }
-                    attendanceMap[Number(member.id)][key] = attendanceMap[Number(member.id)][key] + 1;
-                });
-            }
+                }
+                console.log(attendanceMap[Number(member.id)]);
+                if (isNaN(attendanceMap[Number(member.id)][key])) {
+                    console.log("not a number")
+                    attendanceMap[Number(member.id)][key] = 0;
+                }
+                attendanceMap[Number(member.id)][key] = attendanceMap[Number(member.id)][key] + 1;
+            });
+            cronCount++;
         }
+    }
+    if (cronCount >= 120) {
+        cronCount = 0;
+        this.job.stop();
     }
 }
 
 const postData = () => {
     console.log("Cron is finished.");
     attendanceArray = Object.entries(attendanceMap);
-    if (attendanceArray.length >= 20 && cancel === false) {
+    if (attendanceArray.length >= 15 && cancel === false) {
         console.log("Posting attendance");
+        console.log(attendanceArray);
         for (let i = 0; i < attendanceArray.length; i++) {
             if (attendanceArray[i][1][key] >= 90) {
                 attendanceMap[attendanceArray[i][0]][key] = 1;
