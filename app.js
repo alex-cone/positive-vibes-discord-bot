@@ -1,3 +1,4 @@
+process.env.TZ = 'America/LosAngeles'
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const creds = require('./credentials.js');
@@ -26,7 +27,6 @@ for (const file of commandFiles) {
 
 client.on("ready", () => {
     console.log("Hello :)")
-    process.env.TZ = 'America/LosAngeles'
     //authorization for google sheets access
     docs.authorize(creds["installed"].client_secret, creds["installed"].client_id, creds["installed"].redirect_uris, docs.listMacros)
     this.job = new cron.CronJob({
@@ -40,10 +40,6 @@ client.on("ready", () => {
 });
 
 client.on("message", (message) => {
-    // Troll Harry statement
-    // if (message.author.id === message.guild.members.find(member => member.nickname === 'Moonfire bot (Harry btw)').id){
-    //     message.react(message.guild.emojis.find(emoji => emoji.name == 'HYPERS').id);
-    // }
     if (!message.content.startsWith(prefix) || message.author.bot) return;
     const args = message.content.slice(prefix.length).match(/(?:[^\s"]+|"[^"]*")+/g).map(arg =>  arg = arg.replace(new RegExp("\"", "g"), ""));
     const command = args.shift().toLowerCase();
@@ -60,42 +56,53 @@ client.on("message", (message) => {
 client.login(creds["botToken"])
 
 const discordAttendance = () => {
-    cronCount++;
-    if (cronCount >= 119) {
-        cronCount = 0;
-        this.job.stop();
-    }
-    console.log("Current Attendance Cron Run Through #" + cronCount);
+    console.log("Current Attendance Cron Run Through #" + cronCount+1);
     let chickenDinner = client.guilds.get('227260885746450433');
     if (chickenDinner && chickenDinner.available) {
         let voiceMembers = chickenDinner.channels.find(VoiceChannel => VoiceChannel.name.startsWith("Raiding")).members.array();
         if (voiceMembers.length > 0) {
-            const today = new Date();
-            key = months[today.getMonth()] + today.getDate();
+            const today = new Date().toLocaleDateString('en-US', {
+                timeZone: 'America/Los_Angeles'
+            })
+            const month = today.split('/')[0]
+            const day = today.split('/')[1]
+            key = months[month-1] + day;
             voiceMembers.map(member => {
-                if (member.nickname) {
-                    attendanceMap[Number(member.id)] = {
-                        name: member.nickname,
-                    }
-                } else {
-                    attendanceMap[Number(member.id)] = {
-                        name: member.username,
+                if (!attendanceMap[Number(member.id)]) {
+                    if (member.nickname) {
+                        console.log("Using nickname");
+                        attendanceMap[Number(member.id)] = {
+                            name: member.nickname,
+                        }
+                    } else {
+                        console.log("Using username");
+                        attendanceMap[Number(member.id)] = {
+                            name: member.user.username,
+                        }
                     }
                 }
+                console.log(attendanceMap[Number(member.id)]);
                 if (isNaN(attendanceMap[Number(member.id)][key])) {
+                    console.log("not a number")
                     attendanceMap[Number(member.id)][key] = 0;
                 }
                 attendanceMap[Number(member.id)][key] = attendanceMap[Number(member.id)][key] + 1;
             });
+            cronCount++;
         }
+    }
+    if (cronCount >= 120) {
+        cronCount = 0;
+        this.job.stop();
     }
 }
 
 const postData = () => {
     console.log("Cron is finished.");
     attendanceArray = Object.entries(attendanceMap);
-    if (attendanceArray.length >= 20 && cancel === false) {
-	console.log("Posting attendance");
+    if (attendanceArray.length >= 15 && cancel === false) {
+        console.log("Posting attendance");
+        console.log(attendanceArray);
         for (let i = 0; i < attendanceArray.length; i++) {
             if (attendanceArray[i][1][key] >= 90) {
                 attendanceMap[attendanceArray[i][0]][key] = 1;
