@@ -205,5 +205,23 @@ async function getTotalAttendance(name) {
   return result;
 }
 
+async function getLatestAttendance() {
+  let fileName = '';
+  await storage.bucket(bucketName).getFiles().then(files => {
+    let compareDate = new Date("1970-01-15T06:58:00.794Z");
+    files[0].forEach(file => {
+      tempDate = new Date(file.metadata.timeCreated)
+      if (tempDate > compareDate) {
+        compareDate = tempDate;
+        fileName = file.id;
+      }
+    });
+  });
+  console.log(fileName)
+  await storage.bucket(bucketName).file(fileName).download({destination: './latest.csv'});
+  return fileName;
+}
+
 module.exports.generateCurrentAttendanceJSON = generateCurrentAttendanceJSON;
 module.exports.getTotalAttendance = getTotalAttendance;
+module.exports.getLatestAttendance = getLatestAttendance;
