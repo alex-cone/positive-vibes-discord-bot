@@ -190,4 +190,20 @@ function processAttendance(rows) {
   }).catch(err => console.error(err));
 }
 
+async function getTotalAttendance(name) {
+  const query = `SELECT totalPercent FROM \`ghuunmacrodiscord.guild_attendance.discord_attendance\` WHERE name='${name}'`;
+  const options = {
+    query: query,
+    location: 'US',
+  };
+
+  const [job] = await bigquery.createQueryJob(options);
+  console.log(`Job ${job.id} started.`);
+  const [rows] = await job.getQueryResults();
+  let result = '';
+  rows.forEach(row => result = row.totalPercent);
+  return result;
+}
+
 module.exports.generateCurrentAttendanceJSON = generateCurrentAttendanceJSON;
+module.exports.getTotalAttendance = getTotalAttendance;
