@@ -161,7 +161,10 @@ function generateCurrentAttendanceJSON(newData) {
 }
 
 function processAttendance(rows) {
-  converter.json2csvAsync(rows).then(csv => {
+  const options = {
+    emptyFieldValue: 0
+  }
+  converter.json2csvAsync(rows, options).then(csv => {
     const date = new Date();
     const jsonDate = date.toISOString().substring(0, 10);
     //generates a fileName based on date, random number
