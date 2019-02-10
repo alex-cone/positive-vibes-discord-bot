@@ -1,4 +1,3 @@
-// Imports the Google Cloud client library
 const { BigQuery } = require('@google-cloud/bigquery');
 const fs = require('fs');
 const { Storage } = require('@google-cloud/storage')
@@ -7,36 +6,7 @@ const projectId = "ghuunmacrodiscord";
 const datasetId = "guild_attendance";
 const tableId = "discord_attendance";
 const bucketName = "discord-bot-bucket";
-const sampleJSON = {
-  rows: [
-    {
-      name: "Toyola",
-      totalPercent: ".66",
-      Jan13: "1",
-      Jan14: "1",
-      Jan15: "1",
-      Jan16: "0",
-    },
-    {
-      name: "Jupix",
-      totalPercent: ".33",
-      Jan13: "1",
-      Jan14: "0",
-      Jan15: "1",
-      Jan16: "0",
-    },
-    {
-      name: "Dwang",
-      totalPercent: ".66",
-      Jan13: "1",
-      Jan14: "0",
-      Jan15: "1",
-      Jan16: "1",
-    }
-  ]
-}
-// TODO: CLEAN UP EVERYTHING
-// Creates a client
+
 const bigquery = new BigQuery({
   projectId: projectId,
   keyFilename: 'GhuunMacroDiscord-2d3114f0af63.json'
@@ -47,7 +17,6 @@ const storage = new Storage({
   keyFilename: 'GhuunMacroDiscord-2d3114f0af63.json'
 });
 
-// Configure the load job. For full list of options, see:
 // https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load
 const metadata = {
   sourceFormat: 'CSV',
@@ -55,37 +24,7 @@ const metadata = {
   writeDisposition: 'WRITE_TRUNCATE'
 };
 
-const newData = {
-  124: {
-    name: 'Toyola',
-    Jan20: '1'
-  },
-  126: {
-    name: 'Jupix',
-    Jan20: '1'
-  },
-  130: {
-    name: 'Dwang',
-    Jan20: '1'
-  },
-  140: {
-    name: 'Shinypants',
-    Jan20: '1'
-  },
-  160: {
-    name: 'Swang',
-    Jan20: '1'
-  },
-  170: {
-    name: 'Kaledin',
-    Jan20: '1'
-  },
-  172: {
-    name: 'Bob',
-    Jan20: '1'
-  }
-};
-
+const nonDayKeys = ['name', 'totalPercent', 'id', 'totalDays']
 function generateCurrentAttendanceJSON(newData) {
   bigquery
     .dataset(datasetId)
@@ -119,6 +58,7 @@ function generateCurrentAttendanceJSON(newData) {
             let newEntry = {
               name: arrData[i][1].name,
               id: arrData[i][0],
+              totalDays: 0,
               totalPercent: 0,
             }
             newEntry[day] = Number(arrData[i][1][day]);
@@ -127,26 +67,19 @@ function generateCurrentAttendanceJSON(newData) {
         }
       }
       let attendanceJSON = rows[0].values();
-      let count = 0;
       let playerCount = 0;
       let attendance = attendanceJSON.next();
       while (!attendance.done) {
-        let tempCount = 0;
-        for (let value in attendance.value) {
-          if (value != 'name' && value != 'totalPercent' && value != 'id') {
-            tempCount++;
-          }
-        }
-        if (tempCount > count) {
-          count = tempCount;
-        }
         playerCount++;
         attendance = attendanceJSON.next();
       }
       for (let i = 0; i < playerCount; i++) {
         let total = 0;
         for (let value in rows[0][i]) {
-          if (value != 'name' && value != 'totalPercent' && value != 'id') {
+          if (value === 'totalDays') {
+            rows[0][i][value] = rows[0][i][value] + 1
+          }
+          if (!nonDayKeys.contains(value)) {
             if(isNaN(rows[0][i][value]) || !rows[0][i][value]) {
               rows[0][i][value] = 0;
             }
@@ -154,7 +87,7 @@ function generateCurrentAttendanceJSON(newData) {
             total = total + rows[0][i][value];
           }
         }
-        rows[0][i].totalPercent = 100 * (total / count);
+        rows[0][i].totalPercent = 100 * (total / rows[0][i].totalDays);
       }
       processAttendance(rows[0]);
     })
