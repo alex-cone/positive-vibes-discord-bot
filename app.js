@@ -41,7 +41,7 @@ client.on("ready", () => {
     onTick: discordAttendance,
     start: true,
     timeZone: "America/Los_Angeles",
-    onComplete: postData
+    onComplete: postData,
   });
   console.log("I am ready!");
 });
@@ -73,7 +73,7 @@ const discordAttendance = () => {
       .members.array();
     if (voiceMembers.length > 0) {
       const today = new Date().toLocaleDateString("en-US", {
-        timeZone: "America/Los_Angeles"
+        timeZone: "America/Los_Angeles",
       });
       const month = today.split("/")[0];
       const day = today.split("/")[1];
@@ -83,24 +83,24 @@ const discordAttendance = () => {
           if (member.nickname) {
             console.log("Using nickname");
             attendanceMap[Number(member.id)] = {
-              name: member.nickname
+              name: member.nickname,
             };
           } else {
             console.log("Using username");
-            attendanceMap[Number(member.id)] = { 
-              name: member.user.username
+            attendanceMap[Number(member.id)] = {
+              name: member.user.username,
             };
           }
         }
-        console.log(attendanceMap[Number(member.id)]);
         if (isNaN(attendanceMap[Number(member.id)][key])) {
           console.log("not a number");
           attendanceMap[Number(member.id)][key] = 0;
         }
         attendanceMap[Number(member.id)][key] =
-                    attendanceMap[Number(member.id)][key] + 1;
+          attendanceMap[Number(member.id)][key] + 1;
       });
       cronCount++;
+      console.log(attendanceMap);
     }
   }
   if (cronCount >= 120) {
@@ -111,6 +111,7 @@ const discordAttendance = () => {
 
 const postData = () => {
   console.log("Cron is finished.");
+  console.log(attendanceMap);
   let attendanceArray = Object.entries(attendanceMap);
   if (attendanceArray.length >= 15 && cancel === false) {
     console.log("Posting attendance");
@@ -120,7 +121,7 @@ const postData = () => {
         attendanceMap[attendanceArray[i][0]][key] = 1;
       } else if (
         attendanceArray[i][1][key] < 90 &&
-                attendanceArray[i][1][key] > 30
+        attendanceArray[i][1][key] > 30
       ) {
         attendanceMap[attendanceArray[i][0]][key] = 0.5;
       } else {
@@ -147,7 +148,7 @@ const months = {
   8: "Sep",
   9: "Oct",
   10: "Nov",
-  11: "Dec"
+  11: "Dec",
 };
 
 const cancelAttendance = () => {

@@ -8,18 +8,18 @@ const tableId = "discord_attendance";
 const bucketName = "discord-bot-bucket";
 const bigquery = new BigQuery({
   projectId,
-  keyFilename: "GhuunMacroDiscord-2d3114f0af63.json"
+  keyFilename: "GhuunMacroDiscord-2d3114f0af63.json",
 });
 const storage = new Storage({
   projectId,
-  keyFilename: "GhuunMacroDiscord-2d3114f0af63.json"
+  keyFilename: "GhuunMacroDiscord-2d3114f0af63.json",
 });
 
 // https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs#configuration.load
 const metadata = {
   sourceFormat: "CSV",
   autodetect: true,
-  writeDisposition: "WRITE_TRUNCATE"
+  writeDisposition: "WRITE_TRUNCATE",
 };
 
 const nonDayKeys = ["name", "totalPercent", "id", "totalDays"];
@@ -58,7 +58,7 @@ function generateCurrentAttendanceJSON(newData) {
               name: arrData[i][1].name,
               id: arrData[i][0],
               totalDays: 0,
-              totalPercent: 0
+              totalPercent: 0,
             };
             newEntry[day] = Number(arrData[i][1][day]);
             rows[0].push(newEntry);
@@ -78,7 +78,7 @@ function generateCurrentAttendanceJSON(newData) {
           if (value === "totalDays") {
             rows[0][i][value] = rows[0][i][value] + 1;
           }
-          if (!nonDayKeys.contains(value)) {
+          if (!nonDayKeys.includes(value)) {
             if (isNaN(rows[0][i][value]) || !rows[0][i][value]) {
               rows[0][i][value] = 0;
             }
@@ -94,7 +94,7 @@ function generateCurrentAttendanceJSON(newData) {
 
 function processAttendance(rows) {
   const options = {
-    emptyFieldValue: 0
+    emptyFieldValue: 0,
   };
   converter
     .json2csvAsync(rows, options)
@@ -116,7 +116,7 @@ function processAttendance(rows) {
           storage
             .bucket(bucketName)
             .upload(fileName, {
-              metadata
+              metadata,
             })
             .then(
               bigquery
@@ -142,7 +142,7 @@ async function getTotalAttendance(name) {
   const query = `SELECT totalPercent FROM \`ghuunmacrodiscord.guild_attendance.discord_attendance\` WHERE name='${name}'`;
   const options = {
     query,
-    location: "US"
+    location: "US",
   };
 
   const [job] = await bigquery.createQueryJob(options);
